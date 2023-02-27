@@ -1,0 +1,61 @@
+2023-01-26 14:26:10,762 | avatar.INFO | Initialized Avatar. Output directory is /tmp/tmpy0ed1ahi_avatar
+Loading libpanda from /usr/local/lib/python3.8/dist-packages/pandare/data
+[32m[PYPANDA] [39m[1mPanda args: [/usr/local/lib/python3.8/dist-packages/pandare/data/aarch64-softmmu/libpanda-aarch64.so -L /usr/local/lib/python3.8/dist-packages/pandare/data/pc-bios -machine configurable -kernel /tmp/tmpy0ed1ahi_avatar/Custom_emulator_conf.json -gdb tcp::3333 -S -nographic -qmp tcp:127.0.0.1:3334,server,nowait -m 128M -monitor unix:/tmp/pypanda_m_70r54dj,server,nowait][0m
+2023-01-26 14:26:10,825 | avatar.targets.Custom_emulator.INFO | State changed to TargetStates.STOPPED
+2023-01-26 14:26:10,827 | avatar.INFO | Received state update of target Custom_emulator to TargetStates.STOPPED
+2023-01-26 14:26:10,837 | avatar.targets.Custom_emulator.QMPProtocol.INFO | b'{"return": {}, "id": 0}\r\n'
+2023-01-26 14:26:10,838 | avatar.targets.Custom_emulator.INFO | Connected to remote target
+ins 1
+2023-01-26 14:26:10,856 | avatar.targets.Custom_emulator.INFO | State changed to TargetStates.RUNNING
+2023-01-26 14:26:10,856 | avatar.targets.Custom_emulator.INFO | State changed to TargetStates.STOPPED
+2023-01-26 14:26:10,856 | avatar.INFO | Received state update of target Custom_emulator to TargetStates.RUNNING
+2023-01-26 14:26:10,856 | avatar.INFO | Received state update of target Custom_emulator to TargetStates.STOPPED
+pc='4' x0='0' x2='0' x3='0' x4='0'
+ins 2
+2023-01-26 14:26:10,918 | avatar.targets.Custom_emulator.INFO | State changed to TargetStates.RUNNING
+2023-01-26 14:26:10,919 | avatar.INFO | Received state update of target Custom_emulator to TargetStates.RUNNING
+2023-01-26 14:26:10,919 | avatar.targets.Custom_emulator.INFO | State changed to TargetStates.STOPPED
+2023-01-26 14:26:10,919 | avatar.INFO | Received state update of target Custom_emulator to TargetStates.STOPPED
+pc='8' x0='0' x2='0' x3='0' x4='0'
+ins 3
+2023-01-26 14:26:10,981 | avatar.targets.Custom_emulator.INFO | State changed to TargetStates.RUNNING
+2023-01-26 14:26:10,981 | avatar.INFO | Received state update of target Custom_emulator to TargetStates.RUNNING
+2023-01-26 14:26:10,981 | avatar.targets.Custom_emulator.INFO | State changed to TargetStates.STOPPED
+2023-01-26 14:26:10,982 | avatar.INFO | Received state update of target Custom_emulator to TargetStates.STOPPED
+pc='c' x0='0' x2='0' x3='0' x4='0'
+ins 4
+2023-01-26 14:26:11,044 | avatar.targets.Custom_emulator.INFO | State changed to TargetStates.RUNNING
+2023-01-26 14:26:11,045 | avatar.targets.Custom_emulator.INFO | State changed to TargetStates.STOPPED
+2023-01-26 14:26:11,045 | avatar.INFO | Received state update of target Custom_emulator to TargetStates.RUNNING
+2023-01-26 14:26:11,045 | avatar.INFO | Received state update of target Custom_emulator to TargetStates.STOPPED
+pc='10' x0='0' x2='0' x3='0' x4='0'
+ins 5
+2023-01-26 14:26:11,108 | avatar.targets.Custom_emulator.INFO | State changed to TargetStates.RUNNING
+2023-01-26 14:26:11,109 | avatar.targets.Custom_emulator.INFO | State changed to TargetStates.STOPPED
+2023-01-26 14:26:11,109 | avatar.INFO | Received state update of target Custom_emulator to TargetStates.RUNNING
+2023-01-26 14:26:11,109 | avatar.INFO | Received state update of target Custom_emulator to TargetStates.STOPPED
+pc='14' x0='0' x2='0' x3='0' x4='0'
+ins 6
+2023-01-26 14:26:11,171 | avatar.targets.Custom_emulator.INFO | State changed to TargetStates.RUNNING
+2023-01-26 14:26:11,172 | avatar.targets.Custom_emulator.INFO | State changed to TargetStates.STOPPED
+2023-01-26 14:26:11,172 | avatar.INFO | Received state update of target Custom_emulator to TargetStates.RUNNING
+2023-01-26 14:26:11,172 | avatar.INFO | Received state update of target Custom_emulator to TargetStates.STOPPED
+pc='18' x0='0' x2='0' x3='0' x4='0'
+ins 7
+2023-01-26 14:26:11,235 | avatar.targets.Custom_emulator.INFO | State changed to TargetStates.RUNNING
+2023-01-26 14:26:11,235 | avatar.targets.Custom_emulator.INFO | State changed to TargetStates.STOPPED
+2023-01-26 14:26:11,235 | avatar.INFO | Received state update of target Custom_emulator to TargetStates.RUNNING
+2023-01-26 14:26:11,236 | avatar.INFO | Received state update of target Custom_emulator to TargetStates.STOPPED
+pc='1c' x0='0' x2='0' x3='0' x4='0'
+ins 8
+2023-01-26 14:26:11,296 | avatar.targets.Custom_emulator.INFO | State changed to TargetStates.RUNNING
+2023-01-26 14:26:11,297 | avatar.targets.Custom_emulator.INFO | State changed to TargetStates.STOPPED
+2023-01-26 14:26:11,297 | avatar.INFO | Received state update of target Custom_emulator to TargetStates.RUNNING
+2023-01-26 14:26:11,297 | avatar.INFO | Received state update of target Custom_emulator to TargetStates.STOPPED
+pc='20' x0='0' x2='0' x3='0' x4='0'
+ins 9
+2023-01-26 14:26:11,359 | avatar.targets.Custom_emulator.INFO | State changed to TargetStates.RUNNING
+2023-01-26 14:26:11,360 | avatar.INFO | Received state update of target Custom_emulator to TargetStates.RUNNING
+2023-01-26 14:26:12,151 | avatar.INFO | Avatar Received SIGINT
+2023-01-26 14:26:12,157 | avatar.targets.Custom_emulator.INFO | State changed to TargetStates.EXITED
+2023-01-26 14:26:12,158 | avatar.INFO | Received state update of target Custom_emulator to TargetStates.EXITED

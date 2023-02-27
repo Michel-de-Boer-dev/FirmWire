@@ -67,6 +67,23 @@ class S5000AP(ShannonSOC):
         ]
 
 
+class S5123AP(ShannonSOC):
+    peripherals = [
+       
+    ]
+    CHIP_ID = 0x51230000
+    # SIPC_BASE = 0x8F920000
+    # SHM_BASE = 0x4B200000
+    SOC_BASE = 0x82000000 #TODO double check!!!
+    SOC_CLK_BASE = 0x83000000 # TODO double check!
+    CLK_PERIPHERAL = S5000APClkPeripheral
+    TIMER_BASE = SOC_BASE + 0x8000
+
+    name = "S5123"
+
+    def __init__(self, date, main_section):
+        super().__init__(date)
+
 class S360AP(ShannonSOC):
     peripherals = [
         SOCPeripheral(S3xxAPBoot, 0x95B40000, 0x100, name="S3xxboot"),
@@ -255,3 +272,4 @@ register_soc("shannon", S353AP)
 register_soc("shannon", S355AP)
 register_soc("shannon", S360AP)
 register_soc("shannon", S5000AP)
+register_soc("shannon", S5123AP)

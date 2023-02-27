@@ -45,6 +45,22 @@ class ARM_CORTEX_R7(ARM):
     def init(avatar):
         pass
 
+class ARM_CORTEX_A55(ARM):
+    cpu_model = "cortex-a55"
+    qemu_name = "aarch64"
+    gdb_name = "aarch64"
+    angr_name = "aarch64"
+    capstone_arch = CS_ARCH_ARM64
+    capstone_mode = CS_MODE_LITTLE_ENDIAN
+    keystone_arch = KS_ARCH_ARM64
+    keystone_mode = KS_MODE_LITTLE_ENDIAN | KS_MODE_ARM
+    unicorn_arch = UC_ARCH_ARM64
+    unicorn_mode = UC_MODE_LITTLE_ENDIAN | UC_MODE_ARM
+
+    @staticmethod
+    def init(avatar):
+        pass
+
 
 class ShannonLoader(firmwire.loader.Loader):
     NAME = "shannon"
@@ -54,6 +70,8 @@ class ShannonLoader(firmwire.loader.Loader):
 
     @property
     def ARCH(self):
+        if self.modem_soc.name == "S5123":
+            return ARM_CORTEX_A55   
         return ARM_CORTEX_R7
 
     @staticmethod
@@ -98,37 +116,77 @@ class ShannonLoader(firmwire.loader.Loader):
 
         assert self.task_layout is not None
 
-        if not self.build_memory_map():
+        #TODO the s5123 has MMU, we should probably build a seperate memory map
+
+        if self.modem_soc.name != "S5123":
+            if not self.build_memory_map():
+                return False
+        elif not self.build_memory_map_s5123():
             return False
 
         self._machine_class = ShannonMachine
 
         return True
 
-    def build_memory_map(self):
-        #######################
-        # MPU Memory Map
-        #######################
+    
+    def parse_short_ttb_entry_l1(val):
+        '''
+            Parse Short-descriptor translation table level 1.
+            Each entry in Level 1 describes the mapping of 1MB VA range.
+            Although note that a Supersection is repeated 16 times, thus 16MB
+            
+            See G5-9164 A profile architecture reference manual.
+        '''
+        bin_val = bin(val)[2:].zfill(32)
+        ttb_type = bin_val[-2:]
 
-        modem_main = self.modem_file.get_section("MAIN")
-        sym = self.symbol_table.lookup("boot_mpu_table")
-        if sym is None:
+        # Note about python slicing:
+        # bin_val[-a : -b]
+        # we should have that -a < -b (Other words, left abs value is bigger)
+        # also, length/range is b-a
+        # suppose we want bit 5 till bit 8 (both including, starting at index 0), big endian, that would be
+        # bin_val[ -9:-5 ]  which would be 4 bits: "8765"
+        # however, be careful, as bin_val[-a: 0] does not work as expected. Instead use bin_val[-a:]
+
+        # TODO consistency between hex values and strings values, e.g. domain is int, but pxn is not
+           
+        if ttb_type == '00': # invalid descriptor
+
             log.error(
-                "Unable to find MPU table in modem binary. Cannot create memory map"
+                "Invalid TTB descriptor."
             )
-            return False
+            return None
+        
+        elif ttb_type == '01': # Translation table, with level 2 base address of (super)section that specifies 1MByte VA range
+            PXN = bin_val[-3]
+            NS = bin_val[-4]
+            domain = int(bin_val[-9:-5], 2)
+            ttb_l2_base_addr = int(bin_val[-32:-11] + '0'*11, 2) # lower bits are 0, this is a pointer to the level 2 table.
+    
+        else: # (super) section
+            # See A profile architecture reference manual, G5-9176
+            PXN = bin_val[-1]   # Privileged execute never
+            MR_B = bin_val[-3]  # memory region attributes
+            MR_C = bin_val[-4]
+            TEX = bin_val[-15:-13]
+            XN = bin_val[-5]    # Execute never
+            S = bin_val[-17]    # Sharable
+            NG = bin_val[-18]   # Not global.
+            NS = bin_val[-20]   # non secure bit
+            AP = bin_val[-12:-10] + bin_val[-16]
+            
+            is_super_section = bin_val[-19] == '1'
+            if is_super_section:
+                # PA means physical address
+                supersection_base_address = bin_val[-32:-25] # PA[31:24]
+                extended_base_address  = bin_val[-9:-5] + bin_val[-24:-21] # PA[39:36] and PA[35:32]
+                physical_address = extended_base_address + supersection_base_address + '0' * 24
+            else: # section
+                domain = int(bin_val[-9:-5], 2)
+                section_base_address = bin_val[-32:-20] # PA[31:20]
+            return None
 
-        mpu_entries = shannon.mpu.parse_mpu_table(modem_main, sym.address)
-        table = shannon.mpu.consolidate_mpu_table(mpu_entries)
-        self.mpu_table = table
-
-        for entry in table:
-            mpu = entry.mpu
-            name = "MPU%d_%08x" % (mpu.slot, entry.start)
-            self.add_memory_range(
-                entry.start, entry.size, name=name, permissions=mpu.get_rwx_str()
-            )
-
+    def add_toc_file_memory_map(self):
         #######################
         # TOC File Memory Map
         #######################
@@ -171,6 +229,48 @@ class ShannonLoader(firmwire.loader.Loader):
                         file=section_path.to_path(),
                         name=name + "_LOW",
                     )
+    def build_memory_map_s5123(self):
+        self.add_toc_file_memory_map()
+
+        translation_table_base_address = 0x40008000 # TODO use pattern instead
+        ttba_entries = 4096 
+        # S5123 has TTBCR.N set to 0, thus TTBR1 disabled and TTBR0 16KB size.
+        # furhtermore, short descriptors are used.
+
+        # TODO
+
+        return True
+    
+
+    def build_memory_map(self):
+        #######################
+        # MPU Memory Map
+        #######################
+
+        modem_main = self.modem_file.get_section("MAIN")
+        sym = self.symbol_table.lookup("boot_mpu_table")
+        if sym is None:
+            log.error(
+                "Unable to find MPU table in modem binary. Cannot create memory map"
+            )
+            return False
+
+        mpu_entries = shannon.mpu.parse_mpu_table(modem_main, sym.address)
+        table = shannon.mpu.consolidate_mpu_table(mpu_entries)
+        self.mpu_table = table
+
+        for entry in table:
+            mpu = entry.mpu
+            name = "MPU%d_%08x" % (mpu.slot, entry.start)
+            self.add_memory_range(
+                entry.start, entry.size, name=name, permissions=mpu.get_rwx_str()
+            )
+
+        #######################
+        # TOC File Memory Map
+        #######################
+
+        self.add_toc_file_memory_map()
 
         ########################
         # Peripheral Memory Map

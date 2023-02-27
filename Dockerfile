@@ -35,15 +35,15 @@ RUN apt-get update && apt-get upgrade -y && \
 # Install panda, and deps for Shannon Panda
 WORKDIR /firmwire_deps
 RUN rm -rf panda \
-  && git clone --depth=1 https://github.com/FirmWire/panda.git \
+  && git clone --depth=1 --branch debug https://github.com/Michel-de-Boer-dev/panda.git \
   && cd panda \
-  && git checkout main \
   && rm -rf build \
   && mkdir build \
   && cd build \
-  && ../configure --disable-werror --target-list=aarch64-softmmu,arm-softmmu,mipsel-softmmu \
+  && ../configure --disable-werror --target-list=aarch64-softmmu,arm-softmmu \
     --cc=gcc-9 \
     --cxx=g++-9 \
+    --enable-debug \
     --disable-sdl \
     --disable-user \
     --disable-linux-user \

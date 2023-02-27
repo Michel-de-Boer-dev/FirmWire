@@ -12,7 +12,7 @@ PATTERNS = {
         "pattern": "00000000 00000000 1c000000"
         + "????????" * 6
         + "01000000 01000000 00000004 20",
-        "required": True,
+        "required": False,
     },
     "boot_setup_memory": {
         "pattern": [
@@ -22,7 +22,7 @@ PATTERNS = {
         "offset": -0x14,
         "align": 4,
         "post_lookup": handlers.parse_memory_table,
-        "required": True,
+        "required": False,
     },
     "boot_key_check": {
         "pattern": [
@@ -58,7 +58,7 @@ PATTERNS = {
             "0fb4 2de9f047 ???? ??98 d0e90060 c0f34815",
             "0f b4 10 b5 03 a9 02 98 ff f7 9a ff 10 bc 5d f8 14 fb",
         ],
-        "required": True,
+        "required": False,# TODO actually require
     },
     # log_printf_debug
     "log_printf2": {
@@ -83,6 +83,12 @@ PATTERNS = {
         "lookup": handlers.find_task_table,
         "post_lookup": handlers.fixup_set_task_layout,
     },
+    "SYM_TASK_LIST_S5123": {
+        "lookup": handlers.find_task_table_s5123,
+        "post_lookup": handlers.fixup_set_task_layout_s5123,
+        "soc_match": ["S5123"],
+    },
+
     "SYM_SCHEDULABLE_TASK_LIST": {"lookup": handlers.find_schedulable_task_table},
     "SYM_CUR_TASK_ID": {"lookup": handlers.find_current_task_ptr},
     "SYM_FN_EXCEPTION_SWITCH": {"lookup": handlers.find_exception_switch},

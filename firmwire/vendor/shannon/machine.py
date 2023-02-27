@@ -294,7 +294,7 @@ r12: %08x     cpsr: %08x""" % (
         gic = self.qemu.pypanda.libpanda.configurable_get_peripheral(
             b"gic"
         )  # hardcoded mr-range name
-        # the first 32irq are internal, nothing we cna do about them for now
+        # the first 32irq are internal, nothing we can do about them for now
         self.qemu.pypanda.libpanda.configurable_a9mp_inject_irq(gic, irq - 32, level)
 
     def initialize(self, loader, args):
@@ -527,6 +527,34 @@ r12: %08x     cpsr: %08x""" % (
             return False
 
         return True
+
+    def boot_aarch64_into_aarch32(self, return_address):
+        '''
+            Boot the machine from EL3 AArch64 into EL1 (Secure) AArch32.
+            @param return_address, where to start after exception return;
+        '''
+        # Assembly code to go from EL3 AArch64 to EL1(Secure) AArch32
+        boot_code = \
+            b"".join([
+            b"\xE1\x03\x1F\xAA",    # mov  x1, xzr             ; Clear x1     
+            b"\x21\x00\x18\x32",    # orr  w1, w1, #0x100      ; Enable HVC calls
+            b"\x01\x11\x1E\xD5",    # msr  scr_el3, x1         ; set secure Configuration Register
+            b"\x01\x00\x84\xD2",    # movz x1, #0x2000         ; Address to start in EL1  (Can be changed by simply setting the Program Counter)
+            b"\x21\x40\x1E\xD5",    # msr  elr_el3, x1         ; Set return address of exception
+            b"\xE1\x03\x80\xD2",    # movz x1, #0x1f           ; Aarch32 system mode. and bit 4 sets AArch32
+            b"\x01\x40\x1E\xD5",    # msr  spsr_el3, x1        ; Set saved program status register EL3
+            b"\xE0\x03\x9F\xD6"])   # eret                     ; Exception return
+        boot_start_address = self.playground.begin + self.playground_offset
+        self.qemu.write_memory(boot_start_address, len(boot_code), boot_code, raw=True)
+        self.qemu.write_register("pc", boot_start_address)
+
+        for i in range( len(boot_code)//4):
+            self.qemu.step()
+
+        # should be in EL1(S) now. We can change the program counter to prefered location
+        self.qemu.write_register("PC", return_address)
+
+
 
     def load_task_module(self, name):
         module = self.modkit.find_module(name)

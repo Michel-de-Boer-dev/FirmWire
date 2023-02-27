@@ -229,7 +229,7 @@ def find_queue_table(data, offset):
     return offset + ptr
 
 
-def find_task_table(data, offset):
+def find_task_table(data, offset, is_s5123=False):
     bp_task = BinaryPattern("task", offset=1)
     bp_task.from_str(b"\x00" + TASK_NAME_TO_FIND + b"\x00")
 
@@ -249,27 +249,33 @@ def find_task_table(data, offset):
     if len(locs) == 0:
         return None
 
-    xref_target = locs[0][0] + offset
+    if is_s5123:
+         xref_target = locs[1][0] + offset
+    else:
+        xref_target = locs[0][0] + offset
 
     bp_task_x = BinaryPattern("xref")
     bp_task_x.from_str(struct.pack("I", xref_target))
     rez = bp_task_x.findall(data, maxresults=2)
 
     if len(rez) < 2:
-        return None
+        return 0x0
 
-    # the first result is another reference we dont care about
-    ptr = rez[1][0]
-
+    # the first result is another reference we dont care about, except for s5123
+    if is_s5123:
+        ptr = rez[0][0]
+    else:
+        ptr = rez[1][0]
     return ptr
 
 
 def fixup_set_task_layout(self, sym, data, offset):
+    if sym.address == 0:
+        return True
     ptr = sym.address
 
     # try to figure out task layout:
     found_layout = None
-
     for layout in get_task_layouts():
         test_ptr = ptr
         test_ptr -= layout.SIZE()
@@ -310,12 +316,24 @@ def fixup_set_task_layout(self, sym, data, offset):
 
     raise ValueError("Invalid task layout")
 
+def find_task_table_s5123(data, offset):
+    return find_task_table(data, offset, True)
+
+def fixup_set_task_layout_s5123(self, sym, data, offset):
+    self.symbol_table.replace(
+                "SYM_TASK_LIST",
+                self.symbol_table.lookup("SYM_TASK_LIST_S5123").address,
+            )
+    return fixup_set_task_layout(self, self.symbol_table.lookup("SYM_TASK_LIST"), data, offset)
+
 
 def find_lterrc_int_mob_cmd_ho_from_irat_msgid(data, offset):
     bp = BinaryPattern("lte_rrc_int_mob_cmd_ho_from_irat_msgid", offset=0x12)
     bp.from_hex(
         "?? ?? 14 ?? ?? d0 ?? ?? ?? d0 ?? ?? ?? d0 ?? f5 43 ?? ?? ?? ?? d0 01 20"
     )
+    if bp.find(data) is None:
+        return None
 
     off = bp.find(data)[0]
     res = 0xC3 << 8 | data[off]
